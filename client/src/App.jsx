@@ -82,7 +82,6 @@ function App() {
         ))}
       </div>
 
-      {/* Pagination */}
       <div className="mt-10 flex justify-center">
         <Pagination
           currentPage={page}
@@ -91,7 +90,6 @@ function App() {
         />
       </div>
 
-      {/* Character Modal */}
       {selectedCharacter && (
         <div
           className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 px-4"
