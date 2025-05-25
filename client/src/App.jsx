@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
-import "./App.css";
+import { FaSearch } from "react-icons/fa";
 import CharacterCard from "./components/CharacterCard";
 import Pagination from "./components/Pagination";
 import { getCharacterDetails, getCharacters } from "./services/api";
+import "./App.css";
 
 function App() {
   const [characters, setCharacters] = useState([]);
@@ -12,61 +13,25 @@ function App() {
   const [selectedCharacter, setSelectedCharacter] = useState(null);
   const [homeworldName, setHomeworldName] = useState("");
 
-  // useEffect(() => {
-  //   async function loadData() {
-  //     const data = await getCharacters(page, search);
-  //     setCharacters(data.results || []);
-  //     const total = data.total_records || 60;
-  //     setTotalPages(Math.ceil(total / 10));
-  //   }
-  //   loadData();
-  // }, [page, search]);
-
-  // useEffect(() => {
-  //   async function loadData() {
-  //     const data = await getCharacters(page, search);
-
-  //     // Optional: filter locally if API returns broad results
-  //     const filteredResults = data.results.filter((char) =>
-  //       char.name.toLowerCase().includes(search.toLowerCase())
-  //     );
-
-  //     setCharacters(filteredResults);
-
-  //     const total = search ? filteredResults.length : data.total_records || 60;
-  //     setTotalPages(Math.ceil(total / 10));
-  //   }
-
-  //   loadData();
-  // }, [page, search]);
-
   useEffect(() => {
-  async function loadData() {
-    const data = await getCharacters(page, search);
+    async function loadData() {
+      const data = await getCharacters(page, search);
+      setCharacters(data.results || []);
+      const total = data.total_records || 0;
+      setTotalPages(Math.ceil(total / 10));
+    }
 
-    // Backend already handles filtering
-    setCharacters(data.results || []);
-
-   const total = data.total_records || (search ? characters.length : 60);
-
-
-    setTotalPages(Math.ceil(total / 10));
-  }
-
-  loadData();
-}, [page, search]);
-
+    loadData();
+  }, [page, search]);
 
   const handleSearch = () => {
     setPage(1);
   };
 
-
   const handleCardClick = async (char) => {
     const details = await getCharacterDetails(char.uid);
     setSelectedCharacter(details.result);
 
-    // Fetch the homeworld name
     const homeworldUrl = details.result.properties.homeworld;
     if (homeworldUrl) {
       try {
@@ -83,23 +48,31 @@ function App() {
   };
 
   return (
-    <div className="p-6">
-      <div className="flex justify-end mb-4">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search characters"
-          className="border p-2 rounded-l"
-        />
-        <button
-          className="bg-blue-600 text-white px-4 rounded-r"
-          onClick={handleSearch}
-        >
-          Search
-        </button>
+    <div className="min-h-screen bg-gradient-to-br from-gray-950 to-black text-white w-full py-12 md:px-12 px-6 font-sans">
+      <h1 className="text-5xl font-extrabold text-center mb-10 text-blue-400 drop-shadow-lg tracking-wide">
+        Star Wars Characters
+      </h1>
+
+      <div className="flex justify-end mb-10">
+        <div className="flex border border-blue-600 rounded-2xl overflow-hidden shadow-lg w-full max-w-md">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search characters..."
+            className="bg-gray-800 text-white px-5 py-3 w-full focus:outline-none placeholder:text-gray-400"
+          />
+          <button
+            className="bg-blue-600 px-6 flex items-center justify-center hover:bg-blue-700 transition"
+            onClick={handleSearch}
+            aria-label="Search"
+          >
+            <FaSearch />
+          </button>
+        </div>
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
         {characters.map((char) => (
           <CharacterCard
             key={char.uid}
@@ -108,157 +81,63 @@ function App() {
           />
         ))}
       </div>
-      <Pagination
-        currentPage={page}
-        totalPages={totalPages}
-        onPageChange={setPage}
-      />
 
-      {/* {selectedCharacter && (
+      {/* Pagination */}
+      <div className="mt-10 flex justify-center">
+        <Pagination
+          currentPage={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
+      </div>
+
+      {/* Character Modal */}
+      {selectedCharacter && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black/80 backdrop-blur-md flex items-center justify-center z-50 px-4"
           onClick={() => setSelectedCharacter(null)}
         >
           <div
-            className="bg-white rounded-2xl shadow-lg w-[90%] max-w-md p-6 relative"
+            className="bg-gray-900 text-white rounded-2xl shadow-xl max-w-lg w-full p-6 relative overflow-y-auto max-h-[90vh] border border-blue-700"
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              onClick={() => setSelectedCharacter(null)}
-              className="absolute top-3 right-3 text-gray-500 hover:text-red-600 text-xl font-bold"
-            >
-              &times;
-            </button>
 
-            <h2 className="text-2xl font-semibold mb-4 text-center">
-              {selectedCharacter.properties.name}
-            </h2>
+            <div className="flex items-center justify-center gap-6 mb-6">
+              <h2 className="text-3xl font-bold text-blue-400 text-center">
+                {selectedCharacter.properties.name}
+              </h2>
+              <button
+                onClick={() => setSelectedCharacter(null)}
+                className="text-gray-400 hover:text-red-500 text-3xl font-bold transition-colors"
+                aria-label="Close"
+              >
+                &times;
+              </button>
+            </div>
 
-            <div className="space-y-2 text-gray-700">
+            <div className="grid grid-cols-2 gap-y-3 text-sm max-h-[60vh] overflow-y-auto pr-2">
               {Object.entries(selectedCharacter.properties).map(
                 ([key, value]) => {
                   if (key === "name" || key === "url") return null;
-
-                  if (key === "homeworld") {
-                    return (
-                      <p key={key}>
-                        <strong className="capitalize">Homeworld:</strong>{" "}
-                        {homeworldName}
-                      </p>
-                    );
-                  }
+                  const displayValue =
+                    key === "homeworld" ? homeworldName : value;
 
                   return (
-                    <p key={key}>
-                      <strong className="capitalize">
+                    <React.Fragment key={key}>
+                      <span className="text-gray-300 capitalize font-medium">
                         {key.replace(/_/g, " ")}:
-                      </strong>{" "}
-                      {value}
-                    </p>
+                      </span>
+                      <span className="text-gray-100 break-words">
+                        {displayValue}
+                      </span>
+                    </React.Fragment>
                   );
                 }
               )}
             </div>
           </div>
         </div>
-      )} */}
-      {/* {selectedCharacter && (
-  <div
-    className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4"
-    onClick={() => setSelectedCharacter(null)}
-  >
-    <div
-      className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative overflow-hidden"
-      onClick={(e) => e.stopPropagation()}
-    >
-
-      <button
-        onClick={() => setSelectedCharacter(null)}
-        className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl font-bold transition-colors"
-        aria-label="Close"
-      >
-        &times;
-      </button>
-
-
-      <h2 className="text-3xl font-bold text-center mb-6 text-gray-800">
-        {selectedCharacter.properties.name}
-      </h2>
-
-
-      <div className="space-y-3 text-[15px] text-gray-700 max-h-[60vh] overflow-y-auto pr-1">
-        {Object.entries(selectedCharacter.properties).map(([key, value]) => {
-          if (key === "name" || key === "url") return null;
-
-          if (key === "homeworld") {
-            return (
-              <p key={key}>
-                <span className="font-semibold text-gray-600">Homeworld:</span>{" "}
-                {homeworldName}
-              </p>
-            );
-          }
-
-          return (
-            <p key={key}>
-              <span className="font-semibold text-gray-600">
-                {key.replace(/_/g, " ")}:
-              </span>{" "}
-              {value}
-            </p>
-          );
-        })}
-      </div>
-    </div>
-  </div>
-)} */}
-
-{selectedCharacter && (
-  <div
-    className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4"
-    onClick={() => setSelectedCharacter(null)}
-  >
-    <div
-      className="bg-neutral-800 text-white rounded-2xl shadow-2xl max-w-md w-full p-6 relative overflow-hidden"
-      onClick={(e) => e.stopPropagation()}
-    >
-
-      <button
-        onClick={() => setSelectedCharacter(null)}
-        className="absolute top-3 right-3 text-gray-400 hover:text-red-500 text-2xl font-bold transition-colors"
-        aria-label="Close"
-      >
-        &times;
-      </button>
-
-
-      <h2 className="text-3xl font-bold text-center mb-6 text-white">
-        {selectedCharacter.properties.name}
-      </h2>
-
-
-      <div className="grid grid-cols-2 gap-y-3 text-[15px] max-h-[60vh] overflow-y-auto pr-1">
-        {Object.entries(selectedCharacter.properties).map(([key, value]) => {
-          if (key === "name" || key === "url") return null;
-
-          const displayValue = key === "homeworld" ? homeworldName : value;
-
-          return (
-            <React.Fragment key={key}>
-              <span className="font-semibold text-gray-300 capitalize">
-                {key.replace(/_/g, " ")}:
-              </span>
-              <span className="text-gray-100">{displayValue}</span>
-            </React.Fragment>
-          );
-        })}
-      </div>
-    </div>
-  </div>
-)}
-
-
-
+      )}
     </div>
   );
 }
